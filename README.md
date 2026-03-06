@@ -360,54 +360,53 @@ Esse tipo de sistema é amplamente utilizado em:
 
 ## 16. Estrutura de Pastas
 
-fraud-detection-timeseries/
-│
-├── README.md
-├── requirements.txt
-├── .gitignore
-│
-├── data/
-│   ├── raw/
-│   │   └── dataset_original.csv
-│   ├── processed/
-│   │   └── dataset_clean.csv
-│   └── external/
-│
-├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_statistical_analysis.ipynb
-│   ├── 04_model_training.ipynb
-│   ├── 05_ab_testing.ipynb
-│   └── 06_results_visualization.ipynb
-│
-├── src/
-│   ├── data/
-│   │   ├── load_data.py
-│   │   └── preprocess.py
-│   ├── features/
-│   │   └── feature_engineering.py
-│   ├── models/
-│   │   ├── isolation_forest.py
-│   │   ├── regression_model.py
-│   │   └── evaluate.py
-│   └── visualization/
-│       └── plots.py
-│
-├── reports/
-│   ├── figures/
-│   │   ├── anomaly_detection.png
-│   │   ├── time_series_plot.png
-│   │   └── model_metrics.png
-│   └── final_report.md
-│
-├── dashboards/
-│   └── fraud_dashboard.pbix
-│
-└── tests/
-    ├── test_features.py
-    ├── test_models.py
-    └── test_data_processing.py
+- fraud-detection-timeseries/
+  - README.md
+  - requirements.txt
+  - .gitignore
+
+  - data/
+    - raw/
+      - dataset_original.csv
+    - processed/
+      - dataset_clean.csv
+    - external/
+
+  - notebooks/
+    - 01_data_exploration.ipynb
+    - 02_feature_engineering.ipynb
+    - 03_statistical_analysis.ipynb
+    - 04_model_training.ipynb
+    - 05_ab_testing.ipynb
+    - 06_results_visualization.ipynb
+
+  - src/
+    - data/
+      - load_data.py
+      - preprocess.py
+    - features/
+      - feature_engineering.py
+    - models/
+      - isolation_forest.py
+      - regression_model.py
+      - evaluate.py
+    - visualization/
+      - plots.py
+
+  - reports/
+    - figures/
+      - anomaly_detection.png
+      - time_series_plot.png
+      - model_metrics.png
+    - final_report.md
+
+  - dashboards/
+    - fraud_dashboard.pbix
+
+  - tests/
+    - test_features.py
+    - test_models.py
+    - test_data_processing.py
 
 ### Explicação das Pastas
 
