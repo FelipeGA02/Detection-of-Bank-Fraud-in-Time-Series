@@ -358,7 +358,126 @@ Esse tipo de sistema é amplamente utilizado em:
 
 ---
 
-## 16. Conclusão
+## 16. Estrutura de Pastas
 
-A detecção de anomalias em séries temporais é uma das aplicações mais importantes da **ciência de dados no setor financeiro**. A combinação de **estatística, machine learning e análise temporal** permite identificar comportamentos suspeitos de forma eficiente e escalável, contribuindo para sistemas modernos de **prevenção a fraudes**.
+fraud-detection-timeseries/
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+│
+├── data/
+│   ├── raw/
+│   │   └── dataset_original.csv
+│   ├── processed/
+│   │   └── dataset_clean.csv
+│   └── external/
+│
+├── notebooks/
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   ├── 03_statistical_analysis.ipynb
+│   ├── 04_model_training.ipynb
+│   ├── 05_ab_testing.ipynb
+│   └── 06_results_visualization.ipynb
+│
+├── src/
+│   ├── data/
+│   │   ├── load_data.py
+│   │   └── preprocess.py
+│   ├── features/
+│   │   └── feature_engineering.py
+│   ├── models/
+│   │   ├── isolation_forest.py
+│   │   ├── regression_model.py
+│   │   └── evaluate.py
+│   └── visualization/
+│       └── plots.py
+│
+├── reports/
+│   ├── figures/
+│   │   ├── anomaly_detection.png
+│   │   ├── time_series_plot.png
+│   │   └── model_metrics.png
+│   └── final_report.md
+│
+├── dashboards/
+│   └── fraud_dashboard.pbix
+│
+└── tests/
+    ├── test_features.py
+    ├── test_models.py
+    └── test_data_processing.py
 
+### Explicação das Pastas
+
+### `data/`
+
+Responsável pelo armazenamento de **todos os dados do projeto**, segmentados por estágio de maturação.
+
+- **raw**: Dados originais, sem modificações (**imutáveis**).
+- **processed**: Dados limpos, transformados e prontos para modelagem.
+- **external**: Datasets de terceiros ou fontes complementares.
+
+---
+
+### `notebooks/`
+
+Contém os **Jupyter Notebooks organizados numericamente** para refletir o fluxo lógico do projeto.
+
+Etapas:
+
+- **Exploração**: Análise inicial e entendimento dos dados.
+- **Feature Engineering**: Criação de variáveis e tratamento de séries temporais.
+- **Análise Estatística**: Validação de hipóteses e distribuições.
+- **Treinamento**: Experimentação de algoritmos (ex: Isolation Forest).
+- **A/B Testing**: Validação do impacto das soluções.
+- **Visualização**: Consolidação e análise dos resultados finais.
+
+---
+
+### `src/` (Source Code)
+
+Armazena o **código Python reutilizável e modularizado**. Separar a lógica dos notebooks em arquivos `.py` facilita a **manutenção, reprodutibilidade e deploy**.
+
+Subpastas:
+
+- **data**: Scripts de ETL (extração, carga e limpeza de dados).
+- **features**: Lógica de cálculo de variáveis e criação de colunas.
+- **models**: Scripts de treinamento, arquitetura dos modelos e cálculo de métricas.
+- **visualization**: Funções para geração de gráficos padronizados.
+
+---
+
+### `reports/`
+
+Destinado aos **entregáveis finais do projeto** e evidências visuais.
+
+- **figures**: Exportação de gráficos (PNG/JPG) para apresentações e relatórios.
+- **final_report**: Documentação detalhada com análises e conclusões do projeto.
+
+---
+
+### `dashboards/`
+
+Armazena arquivos de **ferramentas de Business Intelligence** utilizadas para visualização interativa e monitoramento de indicadores.
+
+Exemplos:
+
+- Power BI
+- Tableau
+- Metabase
+
+Utilizado para acompanhar **KPIs de fraude**, padrões temporais e desempenho do modelo.
+
+---
+
+### `tests/`
+
+Responsável por garantir a **integridade do pipeline de dados** através de testes unitários.
+
+Testes comuns:
+
+- Verificação se o **cálculo das features está correto**.
+- Validação se o **formato de entrada e saída dos dados segue o esquema esperado**.
+- Testes de **funcionamento e performance mínima dos modelos**.
