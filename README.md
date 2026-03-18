@@ -1,12 +1,18 @@
-# Detection-of-Bank-Fraud-in-Time-Series
+# End-to-End Data Platform for Fraud Detection (Data Engineering + BI + ML)
 
 ## 1. Visão Geral
 
-Este projeto tem como objetivo desenvolver um sistema de **detecção de anomalias e possíveis fraudes em transações financeiras** utilizando **análise de séries temporais, estatística e machine learning**.
+Este projeto implementa uma arquitetura completa de dados (end-to-end), desde ingestão até consumo analítico, para detecção de fraudes financeiras.
 
-A ideia central é identificar **comportamentos fora do padrão ao longo do tempo**, como transações com valores incomuns, frequência anormal de operações ou atividades em horários atípicos.
+A solução inclui:
 
-O projeto simula um cenário real de **sistemas antifraude utilizados por bancos e fintechs**, onde transações são analisadas continuamente para identificar riscos.
+- Pipelines de dados orquestrados (ETL/ELT)
+- Modelagem de dados em Data Warehouse (camadas bronze, silver, gold)
+- Processamento e transformação de dados em escala
+- Treinamento de modelos de machine learning
+- Exposição de dados para análise e BI (dashboards)
+
+O objetivo é simular um ambiente real de dados utilizado por empresas data-driven.**sistemas antifraude utilizados por bancos e fintechs**, onde transações são analisadas continuamente para identificar riscos.
 
 ---
 
@@ -51,30 +57,62 @@ Estrutura típica:
 
 ---
 
-# 4. Arquitetura do Projeto
+# 4 Arquitetura do Projeto
 
-Pipeline de dados:
+## 4.1 Arquitetura de Dados
 
-Coleta de dados
-↓
-Limpeza e pré-processamento
-↓
-Análise exploratória (EDA)
-↓
-Feature Engineering
-↓
-Testes estatísticos
-↓
-Treinamento de modelos
-↓
-Validação (A/B testing e métricas)
-↓
-Detecção de anomalias
-↓
-Dashboard de monitoramento
+Pipeline de Dados
 
+O pipeline segue uma arquitetura moderna em camadas (bronze, silver, gold), integrando engenharia de dados, análise e machine learning:
 
----
+1. Ingestão de dados (APIs, arquivos, fontes externas)
+2. Armazenamento em camada raw (bronze) — dados brutos e imutáveis
+3. Limpeza e pré-processamento (silver) — tratamento, normalização e validação
+4. Análise exploratória (EDA) — entendimento inicial dos dados e identificação de padrões
+5. Feature engineering — criação de variáveis temporais e comportamentais
+6. Testes estatísticos — validação de hipóteses e detecção de outliers (Z-score, IQR)
+7. Treinamento de modelos — algoritmos de detecção de anomalias e regressão
+8. Validação — avaliação com métricas (Precision, Recall, F1-score) e A/B testing
+9. Detecção de anomalias — identificação de transações suspeitas
+10. Geração de métricas e outputs analíticos
+11. Disponibilização dos dados (gold) — tabelas agregadas e otimizadas para consumo
+12. Visualização e monitoramento — dashboards de BI para acompanhamento contínuo
+
+## 4.2 Orquestração de Dados (Apache Airflow)
+
+Os pipelines são orquestrados utilizando Apache Airflow, com DAGs responsáveis por:
+
+- Ingestão de dados
+- Processamento e limpeza
+- Feature engineering
+- Treinamento de modelos
+- Geração de outputs analíticos
+
+Cada etapa é desacoplada e executada de forma automatizada.
+
+##4.2 Data Warehouse (BigQuery)
+
+Os dados são armazenados e processados utilizando BigQuery, permitindo:
+
+- Execução de queries em larga escala
+- Processamento analítico eficiente
+- Integração com ferramentas de BI
+
+Exemplos de tabelas:
+
+- raw_transactions
+- processed_transactions
+- fraud_predictions
+
+##4.3 CI/CD
+
+O projeto utiliza GitHub Actions para:
+
+- Execução de testes automatizados
+- Validação de código (lint)
+- Garantia de qualidade do pipeline
+
+Isso simula um ambiente de produção com boas práticas de engenharia.
 
 # 5. Análise Exploratória de Dados (EDA)
 
@@ -154,7 +192,6 @@ Define limites aceitáveis:
 
 limite_inferior = Q1 - 1.5 * IQR
 limite_superior = Q3 + 1.5 * IQR
-
 
 ---
 
