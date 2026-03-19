@@ -985,7 +985,3 @@ python -m src.models.evaluate
 ## Licença
 
 Distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
-
----
-
-> **Nota:** As seções marcadas com `[atualizar]` devem ser preenchidas com capturas de tela, gráficos gerados e métricas reais após a execução completa do pipeline.
