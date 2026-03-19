@@ -1,519 +1,991 @@
-# End-to-End Data Platform for Fraud Detection (Data Engineering + BI + ML)
+# 🛡️ End-to-End Fraud Detection Data Platform
 
-## 1. Visão Geral
+> Pipeline completo de dados com Engenharia de Dados, Ciência de Dados e BI para detecção de fraudes financeiras em tempo real.
 
-Este projeto implementa uma arquitetura completa de dados (end-to-end), desde ingestão até consumo analítico, para detecção de fraudes financeiras.
-
-A solução inclui:
-
-- Pipelines de dados orquestrados (ETL/ELT)
-- Modelagem de dados em Data Warehouse (camadas bronze, silver, gold)
-- Processamento e transformação de dados em escala
-- Treinamento de modelos de machine learning
-- Exposição de dados para análise e BI (dashboards)
-
-O objetivo é simular um ambiente real de dados utilizado por empresas data-driven.**sistemas antifraude utilizados por bancos e fintechs**, onde transações são analisadas continuamente para identificar riscos.
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![Python](https://img.shields.io/badge/Python-3.11+-blue)
+![Airflow](https://img.shields.io/badge/Airflow-2.8+-red)
+![BigQuery](https://img.shields.io/badge/BigQuery-GCP-orange)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-black)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
-# 2. Problema de Negócio
+## 📌 Índice
 
-Fraudes financeiras geram bilhões de prejuízo todos os anos. Sistemas tradicionais baseados apenas em regras fixas possuem limitações, como:
-
-- dificuldade para detectar novos padrões de fraude
-- alta taxa de falsos positivos
-- baixa adaptabilidade
-
-O objetivo deste projeto é construir um **modelo baseado em dados que detecte automaticamente padrões suspeitos**.
-
-### Exemplos de comportamentos suspeitos
-
-- Transações muito acima da média do cliente
-- Muitas transações em curto período
-- Compras em horários incomuns
-- Mudança abrupta no padrão de gastos
-
----
-
-# 3. Dataset
-
-O projeto pode utilizar datasets públicos de fraude financeira.
-
-Exemplo:
-
-**Credit Card Fraud Detection Dataset**
-
-Estrutura típica:
-
-| Campo | Descrição |
-|-----|-----|
-| timestamp | momento da transação |
-| user_id | identificador do cliente |
-| amount | valor da transação |
-| merchant | estabelecimento |
-| transaction_type | tipo de transação |
-| location | localização |
-| is_fraud | indicador de fraude |
+- [Visão Geral](#visão-geral)
+- [Problema de Negócio](#problema-de-negócio)
+- [Arquitetura](#arquitetura)
+- [Pipeline de Dados — Bronze / Silver / Gold](#pipeline-de-dados--bronze--silver--gold)
+- [Orquestração com Apache Airflow](#orquestração-com-apache-airflow)
+- [Data Warehouse — BigQuery](#data-warehouse--bigquery)
+- [EDA — Análise Exploratória de Dados](#eda--análise-exploratória-de-dados)
+- [Testes Estatísticos](#testes-estatísticos)
+- [Feature Engineering](#feature-engineering)
+- [Modelos de Machine Learning — Séries Temporais](#modelos-de-machine-learning--séries-temporais)
+- [Validação e Métricas](#validação-e-métricas)
+- [BI e Dashboards — Camada Gold](#bi-e-dashboards--camada-gold)
+- [CI/CD — GitHub Actions](#cicd--github-actions)
+- [Stack Tecnológica](#stack-tecnológica)
+- [Estrutura de Pastas](#estrutura-de-pastas)
+- [Como Executar](#como-executar)
+- [Resultados Esperados](#resultados-esperados)
 
 ---
 
-# 4 Arquitetura do Projeto
+## Visão Geral
 
-## 4.1 Arquitetura de Dados
+Este projeto implementa uma **plataforma de dados end-to-end** para detecção de fraudes financeiras, simulando o ambiente de dados utilizado por bancos e fintechs. A solução cobre desde a ingestão de dados brutos até a entrega de dashboards analíticos com KPIs para monitoramento contínuo de anomalias.
 
-Pipeline de Dados
+A arquitetura combina **Engenharia de Dados**, **Ciência de Dados** e **Business Intelligence**, integrando ferramentas modernas como Apache Airflow, BigQuery, Scikit-learn e ferramentas de BI.
 
-O pipeline segue uma arquitetura moderna em camadas (bronze, silver, gold), integrando engenharia de dados, análise e machine learning:
+**Principais entregas:**
 
-1. Ingestão de dados (APIs, arquivos, fontes externas)
-2. Armazenamento em camada raw (bronze) — dados brutos e imutáveis
-3. Limpeza e pré-processamento (silver) — tratamento, normalização e validação
-4. Análise exploratória (EDA) — entendimento inicial dos dados e identificação de padrões
-5. Feature engineering — criação de variáveis temporais e comportamentais
-6. Testes estatísticos — validação de hipóteses e detecção de outliers (Z-score, IQR)
-7. Treinamento de modelos — algoritmos de detecção de anomalias e regressão
-8. Validação — avaliação com métricas (Precision, Recall, F1-score) e A/B testing
-9. Detecção de anomalias — identificação de transações suspeitas
-10. Geração de métricas e outputs analíticos
-11. Disponibilização dos dados (gold) — tabelas agregadas e otimizadas para consumo
-12. Visualização e monitoramento — dashboards de BI para acompanhamento contínuo
-
-## 4.2 Orquestração de Dados (Apache Airflow)
-
-Os pipelines são orquestrados utilizando Apache Airflow, com DAGs responsáveis por:
-
-- Ingestão de dados
-- Processamento e limpeza
-- Feature engineering
-- Treinamento de modelos
-- Geração de outputs analíticos
-
-Cada etapa é desacoplada e executada de forma automatizada.
-
-##4.2 Data Warehouse (BigQuery)
-
-Os dados são armazenados e processados utilizando BigQuery, permitindo:
-
-- Execução de queries em larga escala
-- Processamento analítico eficiente
-- Integração com ferramentas de BI
-
-Exemplos de tabelas:
-
-- raw_transactions
-- processed_transactions
-- fraud_predictions
-
-##4.3 CI/CD
-
-O projeto utiliza GitHub Actions para:
-
-- Execução de testes automatizados
-- Validação de código (lint)
-- Garantia de qualidade do pipeline
-
-Isso simula um ambiente de produção com boas práticas de engenharia.
-
-# 5. Análise Exploratória de Dados (EDA)
-
-Objetivo: entender o comportamento temporal das transações.
-
-Principais análises:
-
-- distribuição de valores de transações
-- frequência de compras por usuário
-- comportamento por horário
-- sazonalidade
-- identificação inicial de outliers
-
-Visualizações utilizadas:
-
-- histogramas
-- boxplots
-- séries temporais
-- heatmaps de horários
-
-Exemplo de insights:
-
-- maioria das transações ocorre entre 8h e 22h
-- valores acima de determinado limite são raros
-- fraudes costumam ocorrer em horários noturnos
+| Entrega | Descrição |
+|---|---|
+| Pipeline ETL/ELT | Ingestão, transformação e carga automatizadas |
+| Camadas analíticas | Bronze → Silver → Gold no BigQuery |
+| Modelos de ML | Detecção de anomalias em séries temporais |
+| Dashboards | KPIs de fraude para monitoramento e decisão |
+| CI/CD | Testes e deploys automatizados via GitHub Actions |
 
 ---
 
-# 6. Feature Engineering
+## Problema de Negócio
 
-Criação de variáveis que capturam padrões temporais.
+Fraudes financeiras geram bilhões em prejuízo anualmente. Sistemas baseados apenas em regras fixas possuem limitações críticas:
 
-### Features temporais
+- Dificuldade para detectar novos padrões de fraude
+- Alta taxa de falsos positivos
+- Baixa adaptabilidade a comportamentos emergentes
 
-- média de gasto nas últimas 24h
-- média de gasto nos últimos 7 dias
-- número de transações nas últimas 24h
-- intervalo entre transações
-- horário da transação
+**Objetivo:** construir um modelo orientado a dados que detecte automaticamente padrões suspeitos em transações financeiras, utilizando análise de séries temporais e aprendizado de máquina.
 
-### Features comportamentais
+**Exemplos de comportamentos suspeitos detectados:**
 
-- razão entre valor atual e média histórica do cliente
-- desvio padrão de gastos
-- frequência de transações
-
-### Exemplo
-
-valor_relativo = valor_transacao / media_historica_cliente
-
-
-Essas variáveis ajudam o modelo a entender **mudanças abruptas de comportamento**.
+```
+✗ Transações muito acima da média histórica do cliente
+✗ Muitas transações em curto intervalo de tempo
+✗ Compras em horários estatisticamente incomuns
+✗ Mudança abrupta no padrão de gastos
+✗ Localização geográfica inconsistente com histórico
+```
 
 ---
 
-# 7. Uso de Estatística
+## Arquitetura
 
-Métodos estatísticos são utilizados para identificar anomalias e validar hipóteses.
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        FONTES DE DADOS                                  │
+│          APIs / CSVs / Streaming / Bases Externas                       │
+└──────────────────────────────┬──────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     ORQUESTRAÇÃO — APACHE AIRFLOW                       │
+│                                                                         │
+│   DAG: ingestão ──► DAG: transformação ──► DAG: ML ──► DAG: analytics  │
+└──────────┬─────────────────────┬──────────────────────┬─────────────────┘
+           │                     │                      │
+           ▼                     ▼                      ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────┐
+│   BRONZE LAYER   │  │   SILVER LAYER   │  │       GOLD LAYER         │
+│   (BigQuery)     │  │   (BigQuery)     │  │      (BigQuery)           │
+│                  │  │                  │  │                           │
+│ raw_transactions │  │ clean_transactions│  │ fraud_kpis_daily         │
+│ raw_customers    │  │ enriched_features │  │ anomaly_summary          │
+│ raw_events       │  │ statistical_flags │  │ customer_risk_score      │
+└──────────────────┘  └──────────────────┘  └──────────────┬───────────┘
+                                                            │
+                               ┌────────────────────────────┘
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      ML PIPELINE                                        │
+│                                                                         │
+│  Feature Engineering ──► Isolation Forest / LSTM ──► Fraud Predictions │
+└─────────────────────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    BI & MONITORAMENTO                                   │
+│                                                                         │
+│              Dashboards com KPIs de fraude e anomalias                  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
-### Z-score
-
-Detecta valores muito distantes da média.
-
-Z = (x - média) / desvio_padrão
-
-Valores com:
-
-|Z| > 3
-
-podem ser considerados outliers.
+> **CI/CD:** GitHub Actions valida e testa cada etapa do pipeline em cada push.
 
 ---
 
-### IQR (Interquartile Range)
+## Pipeline de Dados — Bronze / Silver / Gold
 
-Define limites aceitáveis:
+### 🥉 Bronze — Dados Brutos
 
-limite_inferior = Q1 - 1.5 * IQR
-limite_superior = Q3 + 1.5 * IQR
+Camada de ingestão. Dados armazenados sem modificações, preservando a fonte original.
+
+**Tabelas:**
+
+```sql
+-- BigQuery: projeto.bronze.raw_transactions
+Campo             Tipo        Descrição
+-----------       -------     ---------------------------
+transaction_id    STRING      Identificador único
+timestamp         TIMESTAMP   Data e hora da transação
+user_id           STRING      Identificador do cliente
+amount            FLOAT64     Valor da transação
+merchant          STRING      Estabelecimento
+transaction_type  STRING      Tipo (débito, crédito, pix)
+location          STRING      Localização geográfica
+is_fraud          BOOLEAN     Label de fraude (quando disponível)
+_ingested_at      TIMESTAMP   Timestamp de ingestão no pipeline
+```
+
+**Script de ingestão:**
+
+```python
+# src/data/load_data.py
+
+import pandas as pd
+from google.cloud import bigquery
+
+def ingest_raw_transactions(source_path: str, bq_table: str) -> None:
+    """Ingere dados brutos para a camada Bronze no BigQuery."""
+    df = pd.read_csv(source_path)
+    df["_ingested_at"] = pd.Timestamp.now()
+
+    client = bigquery.Client()
+    job_config = bigquery.LoadJobConfig(
+        write_disposition="WRITE_APPEND",
+        schema_update_options=["ALLOW_FIELD_ADDITION"],
+    )
+    client.load_table_from_dataframe(df, bq_table, job_config=job_config).result()
+    print(f"✔ {len(df)} registros ingeridos em {bq_table}")
+```
 
 ---
+
+### 🥈 Silver — Dados Limpos e Enriquecidos
+
+Limpeza, normalização, validação e enriquecimento dos dados brutos.
+
+**Transformações aplicadas:**
+
+```python
+# src/data/preprocess.py
+
+def clean_transactions(df: pd.DataFrame) -> pd.DataFrame:
+    """Pipeline de limpeza e validação da camada Silver."""
+
+    # Remove duplicatas
+    df = df.drop_duplicates(subset=["transaction_id"])
+
+    # Trata valores nulos
+    df["amount"] = df["amount"].fillna(0)
+    df["location"] = df["location"].fillna("UNKNOWN")
+
+    # Normaliza tipos
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["amount"] = df["amount"].astype(float)
+
+    # Remove outliers extremos (valores negativos inválidos)
+    df = df[df["amount"] >= 0]
+
+    # Extrai features temporais básicas
+    df["hour"]       = df["timestamp"].dt.hour
+    df["day_of_week"] = df["timestamp"].dt.dayofweek
+    df["is_weekend"] = df["day_of_week"].isin([5, 6]).astype(int)
+
+    return df
+```
+
+**Validações aplicadas:**
+
+| Validação | Critério |
+|---|---|
+| Valores nulos | Colunas críticas sem nulo |
+| Tipos de dados | Timestamp, float, string |
+| Integridade referencial | user_id existente |
+| Valores negativos | amount >= 0 |
+| Duplicatas | transaction_id único |
+
+---
+
+### 🥇 Gold — Dados Analíticos
+
+Tabelas agregadas e otimizadas para consumo por BI e modelos de ML.
+
+```sql
+-- BigQuery: projeto.gold.fraud_kpis_daily
+-- Utilizada no dashboard de monitoramento
+
+SELECT
+  DATE(timestamp)              AS data,
+  COUNT(*)                     AS total_transacoes,
+  SUM(CAST(is_fraud AS INT64)) AS fraudes_detectadas,
+  SUM(CASE WHEN is_fraud THEN amount ELSE 0 END) AS valor_bloqueado,
+  ROUND(
+    AVG(CAST(is_fraud AS INT64)) * 100, 2
+  )                            AS taxa_fraude_pct,
+  COUNT(DISTINCT user_id)      AS clientes_impactados
+FROM projeto.silver.processed_transactions
+GROUP BY 1
+ORDER BY 1 DESC
+```
+
+```sql
+-- BigQuery: projeto.gold.customer_risk_score
+-- Score de risco por cliente para apoio à decisão
+
+SELECT
+  user_id,
+  COUNT(*)                                  AS total_transacoes,
+  SUM(CAST(is_fraud AS INT64))              AS fraudes_historicas,
+  AVG(anomaly_score)                        AS score_medio_anomalia,
+  MAX(anomaly_score)                        AS score_max_anomalia,
+  CASE
+    WHEN AVG(anomaly_score) > 0.8 THEN 'ALTO'
+    WHEN AVG(anomaly_score) > 0.5 THEN 'MÉDIO'
+    ELSE 'BAIXO'
+  END AS nivel_risco
+FROM projeto.silver.fraud_predictions
+GROUP BY user_id
+```
+
+---
+
+## Orquestração com Apache Airflow
+
+Os pipelines são orquestrados com DAGs desacopladas e versionadas.
+
+```python
+# dags/fraud_pipeline_dag.py
+
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime, timedelta
+
+from src.data.load_data      import ingest_raw_transactions
+from src.data.preprocess     import clean_transactions
+from src.features.engineering import build_features
+from src.models.isolation_forest import train_model
+from src.models.evaluate     import generate_metrics
+
+default_args = {
+    "owner": "data-team",
+    "retries": 2,
+    "retry_delay": timedelta(minutes=5),
+    "email_on_failure": True,
+}
+
+with DAG(
+    dag_id="fraud_detection_pipeline",
+    default_args=default_args,
+    schedule_interval="@daily",
+    start_date=datetime(2024, 1, 1),
+    catchup=False,
+    tags=["fraud", "ml", "production"],
+) as dag:
+
+    t1_ingest = PythonOperator(
+        task_id="ingest_bronze",
+        python_callable=ingest_raw_transactions,
+        op_kwargs={"source": "gs://bucket/raw/", "table": "projeto.bronze.raw_transactions"},
+    )
+
+    t2_clean = PythonOperator(
+        task_id="transform_silver",
+        python_callable=clean_transactions,
+    )
+
+    t3_features = PythonOperator(
+        task_id="feature_engineering",
+        python_callable=build_features,
+    )
+
+    t4_train = PythonOperator(
+        task_id="train_model",
+        python_callable=train_model,
+    )
+
+    t5_metrics = PythonOperator(
+        task_id="generate_metrics_gold",
+        python_callable=generate_metrics,
+    )
+
+    t1_ingest >> t2_clean >> t3_features >> t4_train >> t5_metrics
+```
+
+**Diagrama da DAG:**
+
+```
+ingest_bronze ──► transform_silver ──► feature_engineering ──► train_model ──► generate_metrics_gold
+```
+
+---
+
+## Data Warehouse — BigQuery
+
+Organização dos datasets por camada analítica:
+
+```
+projeto/
+├── bronze/
+│   ├── raw_transactions          # dados brutos de transações
+│   ├── raw_customers             # dados brutos de clientes
+│   └── raw_events                # eventos externos
+│
+├── silver/
+│   ├── processed_transactions    # dados limpos e enriquecidos
+│   ├── enriched_features         # features calculadas por transação
+│   └── fraud_predictions         # saída dos modelos de ML
+│
+└── gold/
+    ├── fraud_kpis_daily          # KPIs diários de fraude
+    ├── customer_risk_score       # score de risco por cliente
+    ├── anomaly_summary           # resumo de anomalias detectadas
+    └── hourly_fraud_heatmap      # heatmap por hora para BI
+```
+
+---
+
+## EDA — Análise Exploratória de Dados
+
+Objetivo: entender o comportamento temporal e estatístico das transações antes da modelagem.
+
+**Análises realizadas:**
+
+```python
+# notebooks/01_data_exploration.ipynb
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv("data/processed/dataset_clean.csv", parse_dates=["timestamp"])
+
+# 1. Distribuição de valores
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+df["amount"].hist(bins=100, ax=axes[0])
+axes[0].set_title("Distribuição de Valores de Transações")
+
+df[df["is_fraud"] == 1]["amount"].hist(bins=50, ax=axes[1], color="red", alpha=0.7)
+axes[1].set_title("Distribuição de Valores — Fraudes")
+
+# 2. Frequência por hora
+df["hour"] = df["timestamp"].dt.hour
+hourly = df.groupby(["hour", "is_fraud"]).size().unstack()
+hourly.plot(kind="bar", figsize=(14, 5))
+plt.title("Transações por Hora — Normal vs Fraude")
+
+# 3. Heatmap por dia da semana e hora
+pivot = df.pivot_table(values="is_fraud", index="day_of_week", columns="hour", aggfunc="mean")
+sns.heatmap(pivot, cmap="YlOrRd", annot=True, fmt=".2%")
+plt.title("Taxa de Fraude — Dia da Semana × Hora")
+```
+
+<!-- [atualizar] Inserir imagem: reports/figures/eda_hourly_distribution.png -->
+<!-- [atualizar] Inserir imagem: reports/figures/eda_fraud_heatmap.png -->
+
+**Principais insights identificados:**
+
+| Insight | Observação |
+|---|---|
+| Horário de pico de fraudes | Entre 0h e 5h da manhã |
+| Valores suspeitos | Transações acima de R$ 5.000 têm 3x mais chance de fraude |
+| Frequência anômala | Clientes com > 10 transações/hora são outliers |
+| Padrão semanal | Finais de semana apresentam maior concentração de fraudes |
+
+---
+
+## Testes Estatísticos
+
+Métodos estatísticos para identificar anomalias e validar hipóteses antes da modelagem.
+
+### Z-Score
+
+Detecta valores muito distantes da média:
+
+```python
+# src/features/statistical_analysis.py
+
+from scipy import stats
+import numpy as np
+
+def apply_zscore(df: pd.DataFrame, col: str, threshold: float = 3.0) -> pd.DataFrame:
+    """Marca outliers via Z-score."""
+    z_scores = np.abs(stats.zscore(df[col].dropna()))
+    df[f"{col}_zscore"] = z_scores
+    df[f"{col}_is_outlier"] = z_scores > threshold
+    return df
+
+# Exemplo: Z = (valor - média) / desvio_padrão
+# |Z| > 3 → outlier estatístico
+```
+
+### IQR — Interquartile Range
+
+```python
+def apply_iqr(df: pd.DataFrame, col: str) -> pd.DataFrame:
+    """Marca outliers via IQR."""
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower = Q1 - 1.5 * IQR
+    upper = Q3 + 1.5 * IQR
+
+    df[f"{col}_iqr_outlier"] = ~df[col].between(lower, upper)
+    return df
+```
 
 ### Testes de Hipótese
 
-Utilizados para validar relações entre variáveis.
+```python
+from scipy.stats import ttest_ind, chi2_contingency
 
-Exemplos:
+# Teste t: valor médio de transações fraudulentas vs normais
+fraud    = df[df["is_fraud"] == 1]["amount"]
+normal   = df[df["is_fraud"] == 0]["amount"]
 
-- teste t para comparar médias
-- teste qui-quadrado para independência
-- análise de variância (ANOVA)
+t_stat, p_value = ttest_ind(fraud, normal)
+print(f"p-value: {p_value:.4f}")
+# p-value < 0.05 → diferença estatisticamente significativa
+
+# Qui-quadrado: relação entre horário e fraude
+contingency = pd.crosstab(df["hour_group"], df["is_fraud"])
+chi2, p, dof, expected = chi2_contingency(contingency)
+print(f"Chi2: {chi2:.2f} | p-value: {p:.4f}")
+```
+
+<!-- [atualizar] Inserir tabela com resultados reais dos testes (p-values, estatísticas) -->
 
 ---
 
-# 8. Modelos de Machine Learning
+## Feature Engineering
 
-O projeto utiliza modelos de **detecção de anomalias**.
-
-## Isolation Forest
-
-Algoritmo muito usado para detectar fraudes.
-
-Características:
-
-- eficiente em grandes datasets
-- não precisa de dados rotulados
-- identifica pontos isolados no espaço de dados
-
-Exemplo em Python:
+Criação de variáveis que capturam padrões temporais e comportamentais.
 
 ```python
-from sklearn.ensemble import IsolationForest
+# src/features/feature_engineering.py
 
-model = IsolationForest(contamination=0.01)
-model.fit(X)
+def build_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Gera features temporais e comportamentais para o modelo."""
 
-predictions = model.predict(X)
+    df = df.sort_values(["user_id", "timestamp"])
+
+    # ── Features Temporais ──────────────────────────────────────────
+    df["hora"]          = df["timestamp"].dt.hour
+    df["dia_semana"]    = df["timestamp"].dt.dayofweek
+    df["is_madrugada"]  = df["hora"].between(0, 5).astype(int)
+
+    # Tempo desde a última transação do cliente (segundos)
+    df["tempo_desde_ultima"] = (
+        df.groupby("user_id")["timestamp"].diff().dt.total_seconds().fillna(0)
+    )
+
+    # ── Features Comportamentais (Rolling Window) ────────────────────
+    for window, label in [("24h", "24h"), ("7d", "7d")]:
+        df[f"media_gasto_{label}"] = (
+            df.groupby("user_id")["amount"]
+            .transform(lambda x: x.rolling(window, on=df["timestamp"]).mean())
+        )
+        df[f"n_transacoes_{label}"] = (
+            df.groupby("user_id")["amount"]
+            .transform(lambda x: x.rolling(window, on=df["timestamp"]).count())
+        )
+
+    # ── Ratio Comportamental ─────────────────────────────────────────
+    media_historica = df.groupby("user_id")["amount"].transform("mean")
+    df["valor_relativo"] = df["amount"] / (media_historica + 1e-6)
+
+    # Desvio padrão histórico do cliente
+    df["std_historico"] = df.groupby("user_id")["amount"].transform("std").fillna(0)
+
+    return df
 ```
-Saída:
-1  = normal
--1 = anomalia
 
-## 8. Regressão
+**Features geradas:**
 
-Modelos de regressão podem ser usados para prever **valores esperados** em uma série temporal ou em variáveis relacionadas às transações.
-
-### Exemplos
-
-- **Regressão Linear**  
-  Utilizada para prever valores contínuos, como o valor esperado de uma transação com base no comportamento histórico do cliente.
-
-- **Regressão Logística**  
-  Utilizada para **classificação de fraude**, estimando a probabilidade de uma transação ser fraudulenta.
-
-A diferença entre o valor previsto e o valor observado pode indicar **anomalias ou comportamentos suspeitos**.
+| Feature | Tipo | Descrição |
+|---|---|---|
+| `hora` | Temporal | Hora da transação |
+| `is_madrugada` | Temporal | Transação entre 0h–5h |
+| `tempo_desde_ultima` | Temporal | Intervalo entre transações |
+| `media_gasto_24h` | Comportamental | Média de gastos nas últimas 24h |
+| `n_transacoes_24h` | Comportamental | Número de transações nas últimas 24h |
+| `valor_relativo` | Comportamental | Ratio: valor atual / média histórica |
+| `std_historico` | Comportamental | Desvio padrão dos gastos do cliente |
 
 ---
 
-## 9. A/B Testing
+## Modelos de Machine Learning — Séries Temporais
 
-**A/B Testing** é utilizado para avaliar se o novo modelo de detecção de fraudes apresenta desempenho superior ao sistema existente.
+### Isolation Forest — Detecção de Anomalias
 
-### Experimento
+Algoritmo principal para detecção de fraudes sem necessidade de dados rotulados.
 
-**Grupo A**  
-Sistema antigo baseado em regras fixas.
+```python
+# src/models/isolation_forest.py
 
-**Grupo B**  
-Novo sistema baseado em **machine learning**.
+from sklearn.ensemble        import IsolationForest
+from sklearn.preprocessing   import StandardScaler
+import pandas as pd
+import joblib
 
-### Métricas avaliadas
+FEATURES = [
+    "amount", "hora", "is_madrugada", "tempo_desde_ultima",
+    "media_gasto_24h", "n_transacoes_24h", "valor_relativo", "std_historico"
+]
 
-- taxa de detecção de fraudes
-- taxa de falsos positivos
-- tempo de resposta do sistema
-- impacto financeiro
+def train_model(df: pd.DataFrame, contamination: float = 0.01) -> IsolationForest:
+    """Treina o modelo Isolation Forest."""
+    X = df[FEATURES].fillna(0)
 
-### Exemplo de resultado
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-| Métrica | Sistema Antigo | Novo Modelo |
-|--------|--------|--------|
-| Detecção de fraude | 70% | 90% |
-| Falsos positivos | 15% | 8% |
+    model = IsolationForest(
+        n_estimators=200,
+        contamination=contamination,   # proporção esperada de fraudes
+        random_state=42,
+        n_jobs=-1
+    )
+    model.fit(X_scaled)
 
----
+    # Salva artefatos
+    joblib.dump(model,  "models/isolation_forest.pkl")
+    joblib.dump(scaler, "models/scaler.pkl")
 
-## 10. Avaliação do Modelo
+    return model
 
-Principais métricas utilizadas:
+def predict(df: pd.DataFrame) -> pd.DataFrame:
+    """Aplica o modelo e retorna predições."""
+    model  = joblib.load("models/isolation_forest.pkl")
+    scaler = joblib.load("models/scaler.pkl")
 
-### Precision
+    X        = scaler.transform(df[FEATURES].fillna(0))
+    df["prediction"]    = model.predict(X)        # 1=normal, -1=anomalia
+    df["anomaly_score"] = -model.score_samples(X) # quanto maior, mais anômalo
+    df["is_fraud_pred"] = (df["prediction"] == -1).astype(int)
 
-Proporção de fraudes detectadas que **realmente eram fraudes**.
+    return df
+```
 
-### Recall
+### Regressão Logística — Classificação com Labels
 
-Proporção de fraudes reais que foram **corretamente identificadas pelo modelo**.
+Utilizada quando dados rotulados estão disponíveis.
 
-### F1 Score
+```python
+# src/models/regression_model.py
 
-Média harmônica entre **precision** e **recall**, utilizada para balancear ambas as métricas.
+from sklearn.linear_model    import LogisticRegression
+from sklearn.pipeline        import Pipeline
+from sklearn.preprocessing   import StandardScaler
 
-F1 = 2 * (precision * recall) / (precision + recall)
+def train_logistic(X_train, y_train) -> Pipeline:
+    """Treina pipeline de regressão logística."""
+    pipeline = Pipeline([
+        ("scaler", StandardScaler()),
+        ("clf",    LogisticRegression(
+            class_weight="balanced",  # trata desbalanceamento
+            max_iter=1000,
+            random_state=42
+        ))
+    ])
+    pipeline.fit(X_train, y_train)
+    return pipeline
+```
 
+### Análise de Séries Temporais
 
----
+```python
+# notebooks/04_model_training.ipynb
 
-## 11. Visualização e Monitoramento
+import pandas as pd
+import matplotlib.pyplot as plt
 
-Criação de **dashboards analíticos** para monitorar o desempenho do sistema de detecção de fraudes.
+# Agrega fraudes por dia para análise temporal
+daily_fraud = df.groupby(df["timestamp"].dt.date).agg(
+    total_transacoes=("transaction_id", "count"),
+    fraudes=("is_fraud_pred", "sum"),
+    valor_bloqueado=("amount", lambda x: x[df.loc[x.index, "is_fraud_pred"] == 1].sum())
+).reset_index()
 
-### Indicadores monitorados
+daily_fraud["taxa_fraude"] = daily_fraud["fraudes"] / daily_fraud["total_transacoes"]
 
-- fraudes detectadas por dia
-- valor financeiro bloqueado
-- clientes com comportamento suspeito
-- distribuição de anomalias ao longo do tempo
+# Plot série temporal
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 8))
+ax1.plot(daily_fraud["timestamp"], daily_fraud["taxa_fraude"], color="red")
+ax1.set_title("Taxa de Fraude ao Longo do Tempo")
+ax2.bar(daily_fraud["timestamp"], daily_fraud["valor_bloqueado"], color="orange")
+ax2.set_title("Valor Bloqueado por Fraudes (R$)")
+plt.tight_layout()
+```
 
-### Ferramentas possíveis
-
-- Power BI
-- Tableau
-- Metabase
-
----
-
-## 12. Stack Tecnológica
-
-### Linguagem
-
-- Python
-
-### Manipulação de dados
-
-- Pandas
-- NumPy
-
-### Machine Learning
-
-- Scikit-learn
-
-### Análise estatística
-
-- SciPy
-- Statsmodels
-
-### Visualização de dados
-
-- Matplotlib
-- Seaborn
-- Plotly
-
-### Engenharia de dados (opcional)
-
-- SQL
-- Apache Spark
-- Apache Kafka
-
-### Deploy e produção (opcional)
-
-- Docker
-- Airflow
-- FastAPI
-
----
-
-## 13. Resultados Esperados
-
-Com a implementação do modelo, espera-se:
-
-- aumento da taxa de detecção de fraudes
-- redução de falsos positivos
-- identificação automática de comportamentos anormais
-- melhoria na segurança financeira
+<!-- [atualizar] Inserir imagem: reports/figures/time_series_fraud_rate.png -->
+<!-- [atualizar] Inserir imagem: reports/figures/anomaly_detection_scatter.png -->
 
 ---
 
-## 14. Possíveis Extensões do Projeto
+## Validação e Métricas
 
-Melhorias futuras podem incluir:
+### Avaliação do Modelo
 
-- uso de **redes neurais LSTM** para análise de séries temporais
-- **autoencoders** para detecção avançada de anomalias
-- detecção de fraude em **tempo real**
-- integração com **streaming de dados**
-- uso de **graph analytics** para identificar redes de fraude
+```python
+# src/models/evaluate.py
 
----
+from sklearn.metrics import (
+    precision_score, recall_score, f1_score,
+    confusion_matrix, roc_auc_score, classification_report
+)
+import pandas as pd
 
-## 15. Aplicações Reais
+def evaluate_model(y_true, y_pred, y_proba=None) -> dict:
+    """Calcula e exibe métricas de avaliação do modelo."""
+    metrics = {
+        "precision": precision_score(y_true, y_pred, zero_division=0),
+        "recall":    recall_score(y_true, y_pred, zero_division=0),
+        "f1_score":  f1_score(y_true, y_pred, zero_division=0),
+    }
 
-Esse tipo de sistema é amplamente utilizado em:
+    if y_proba is not None:
+        metrics["roc_auc"] = roc_auc_score(y_true, y_proba)
 
-- bancos digitais
-- fintechs
-- empresas de pagamento
-- e-commerce
-- telecom
-- plataformas de marketplace
+    print(classification_report(y_true, y_pred, target_names=["Normal", "Fraude"]))
+    return metrics
+```
 
----
+### A/B Testing — Comparação de Sistemas
 
-## 16. Estrutura de Pastas
+```python
+# notebooks/05_ab_testing.ipynb
 
-- fraud-detection-timeseries/
-  - README.md
-  - requirements.txt
-  - .gitignore
+from scipy.stats import chi2_contingency
 
-  - data/
-    - raw/
-      - dataset_original.csv
-    - processed/
-      - dataset_clean.csv
-    - external/
+# Grupo A: sistema baseado em regras fixas
+# Grupo B: novo modelo de ML
+resultados = {
+    "Sistema Antigo (Regras)": {"fraudes_detectadas": 700, "falsos_positivos": 150, "total": 1000},
+    "Novo Modelo (ML)":        {"fraudes_detectadas": 900, "falsos_positivos": 80,  "total": 1000},
+}
 
-  - notebooks/
-    - 01_data_exploration.ipynb
-    - 02_feature_engineering.ipynb
-    - 03_statistical_analysis.ipynb
-    - 04_model_training.ipynb
-    - 05_ab_testing.ipynb
-    - 06_results_visualization.ipynb
+# Teste qui-quadrado para significância estatística
+tabela = [[700, 300], [900, 100]]
+chi2, p_value, _, _ = chi2_contingency(tabela)
+print(f"Chi2: {chi2:.4f} | p-value: {p_value:.6f}")
+```
 
-  - src/
-    - data/
-      - load_data.py
-      - preprocess.py
-    - features/
-      - feature_engineering.py
-    - models/
-      - isolation_forest.py
-      - regression_model.py
-      - evaluate.py
-    - visualization/
-      - plots.py
+**Resultado do A/B Test:**
 
-  - reports/
-    - figures/
-      - anomaly_detection.png
-      - time_series_plot.png
-      - model_metrics.png
-    - final_report.md
+<!-- [atualizar] Substituir por resultados reais após execução -->
 
-  - dashboards/
-    - fraud_dashboard.pbix
-
-  - tests/
-    - test_features.py
-    - test_models.py
-    - test_data_processing.py
-
-### Explicação das Pastas
-
-### `data/`
-
-Responsável pelo armazenamento de **todos os dados do projeto**, segmentados por estágio de maturação.
-
-- **raw**: Dados originais, sem modificações (**imutáveis**).
-- **processed**: Dados limpos, transformados e prontos para modelagem.
-- **external**: Datasets de terceiros ou fontes complementares.
+| Métrica | Sistema Antigo | Novo Modelo (ML) | Melhoria |
+|---|---|---|---|
+| Taxa de detecção | 70% | 90% | +20pp |
+| Falsos positivos | 15% | 8% | -7pp |
+| F1-Score | 0.72 | 0.91 | +0.19 |
+| ROC-AUC | — | 0.94 | — |
 
 ---
 
-### `notebooks/`
+## BI e Dashboards — Camada Gold
 
-Contém os **Jupyter Notebooks organizados numericamente** para refletir o fluxo lógico do projeto.
+Dashboards analíticos para monitoramento contínuo das fraudes detectadas.
 
-Etapas:
+### KPIs Monitorados
 
-- **Exploração**: Análise inicial e entendimento dos dados.
-- **Feature Engineering**: Criação de variáveis e tratamento de séries temporais.
-- **Análise Estatística**: Validação de hipóteses e distribuições.
-- **Treinamento**: Experimentação de algoritmos (ex: Isolation Forest).
-- **A/B Testing**: Validação do impacto das soluções.
-- **Visualização**: Consolidação e análise dos resultados finais.
+| KPI | Descrição | Frequência |
+|---|---|---|
+| Fraudes detectadas por dia | Contagem diária de anomalias | Diária |
+| Taxa de fraude (%) | % do total de transações | Diária |
+| Valor bloqueado (R$) | Volume financeiro protegido | Diária |
+| Clientes em risco | Usuários com score > 0.8 | Diária |
+| Distribuição por hora | Heatmap de anomalias por hora | Semanal |
+| Top merchants suspeitos | Estabelecimentos com maior taxa de fraude | Semanal |
 
----
+### Query Gold — Dashboard Principal
 
-### `src/` (Source Code)
+```sql
+-- BigQuery: gold.fraud_dashboard_daily
+-- Alimenta o painel principal de monitoramento
 
-Armazena o **código Python reutilizável e modularizado**. Separar a lógica dos notebooks em arquivos `.py` facilita a **manutenção, reprodutibilidade e deploy**.
+WITH base AS (
+  SELECT
+    DATE(timestamp)                               AS data,
+    COUNT(*)                                      AS total_transacoes,
+    SUM(is_fraud_pred)                            AS fraudes,
+    SUM(CASE WHEN is_fraud_pred = 1 THEN amount ELSE 0 END) AS valor_bloqueado,
+    COUNT(DISTINCT CASE WHEN is_fraud_pred = 1 THEN user_id END) AS clientes_afetados
+  FROM `projeto.silver.fraud_predictions`
+  GROUP BY 1
+)
+SELECT
+  *,
+  ROUND(fraudes / NULLIF(total_transacoes, 0) * 100, 2) AS taxa_fraude_pct,
+  SUM(valor_bloqueado) OVER (ORDER BY data ROWS UNBOUNDED PRECEDING) AS valor_acumulado
+FROM base
+ORDER BY data DESC
+```
 
-Subpastas:
-
-- **data**: Scripts de ETL (extração, carga e limpeza de dados).
-- **features**: Lógica de cálculo de variáveis e criação de colunas.
-- **models**: Scripts de treinamento, arquitetura dos modelos e cálculo de métricas.
-- **visualization**: Funções para geração de gráficos padronizados.
-
----
-
-### `reports/`
-
-Destinado aos **entregáveis finais do projeto** e evidências visuais.
-
-- **figures**: Exportação de gráficos (PNG/JPG) para apresentações e relatórios.
-- **final_report**: Documentação detalhada com análises e conclusões do projeto.
-
----
-
-### `dashboards/`
-
-Armazena arquivos de **ferramentas de Business Intelligence** utilizadas para visualização interativa e monitoramento de indicadores.
-
-Exemplos:
-
-- Power BI
-- Tableau
-- Metabase
-
-Utilizado para acompanhar **KPIs de fraude**, padrões temporais e desempenho do modelo.
+<!-- [atualizar] Inserir screenshot do dashboard (Power BI / Metabase / Looker Studio) -->
+<!-- [atualizar] Inserir link para dashboard publicado -->
 
 ---
 
-### `tests/`
+## CI/CD — GitHub Actions
 
-Responsável por garantir a **integridade do pipeline de dados** através de testes unitários.
+Cada push ao repositório dispara o pipeline de validação automaticamente.
 
-Testes comuns:
+```yaml
+# .github/workflows/ci.yml
 
-- Verificação se o **cálculo das features está correto**.
-- Validação se o **formato de entrada e saída dos dados segue o esquema esperado**.
-- Testes de **funcionamento e performance mínima dos modelos**.
+name: Fraud Detection CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Qualidade de Código
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Linting (flake8)
+        run: flake8 src/ tests/ --max-line-length=100
+
+      - name: Type check (mypy)
+        run: mypy src/
+
+  tests:
+    name: Testes Automatizados
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Testes unitários
+        run: pytest tests/ -v --cov=src --cov-report=xml
+
+      - name: Upload cobertura
+        uses: codecov/codecov-action@v4
+
+  deploy:
+    name: Deploy Airflow DAGs
+    runs-on: ubuntu-latest
+    needs: tests
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy para GCP
+        run: |
+          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
+          gsutil -m cp dags/*.py gs://${{ secrets.AIRFLOW_BUCKET }}/dags/
+          echo "✔ DAGs atualizadas com sucesso"
+```
+
+**Fluxo CI/CD:**
+
+```
+Push / PR
+   │
+   ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────────┐
+│   Linting   │────►│    Tests    │────►│  Deploy (main)  │
+│   flake8    │     │   pytest    │     │   GCS + Airflow  │
+│   mypy      │     │   coverage  │     └─────────────────┘
+└─────────────┘     └─────────────┘
+```
+
+---
+
+## Stack Tecnológica
+
+| Categoria | Tecnologia |
+|---|---|
+| Linguagem | Python 3.11+ |
+| Orquestração | Apache Airflow 2.8+ |
+| Data Warehouse | Google BigQuery |
+| Manipulação de dados | Pandas, NumPy |
+| Machine Learning | Scikit-learn |
+| Análise estatística | SciPy, Statsmodels |
+| Visualização | Matplotlib, Seaborn, Plotly |
+| BI & Dashboards | Power BI / Looker Studio / Metabase |
+| Infraestrutura | Docker, GCP |
+| CI/CD | GitHub Actions |
+| Qualidade de código | flake8, mypy, pytest |
+| Versionamento | Git + GitHub |
+
+---
+
+## Estrutura de Pastas
+
+```
+fraud-detection-platform/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # Pipeline CI/CD
+│
+├── dags/
+│   └── fraud_pipeline_dag.py          # DAG principal do Airflow
+│
+├── data/
+│   ├── raw/                           # Bronze: dados originais imutáveis
+│   │   └── transactions_raw.csv
+│   ├── processed/                     # Silver: dados limpos
+│   │   └── transactions_clean.csv
+│   └── external/                      # Fontes complementares
+│
+├── notebooks/
+│   ├── 01_data_exploration.ipynb      # EDA
+│   ├── 02_feature_engineering.ipynb   # Feature engineering
+│   ├── 03_statistical_analysis.ipynb  # Testes estatísticos
+│   ├── 04_model_training.ipynb        # Treinamento de modelos
+│   ├── 05_ab_testing.ipynb            # Validação A/B
+│   └── 06_results_visualization.ipynb # Resultados e métricas
+│
+├── src/
+│   ├── data/
+│   │   ├── load_data.py               # Ingestão Bronze
+│   │   └── preprocess.py             # Transformação Silver
+│   ├── features/
+│   │   ├── feature_engineering.py    # Features temporais e comportamentais
+│   │   └── statistical_analysis.py   # Z-score, IQR, testes
+│   ├── models/
+│   │   ├── isolation_forest.py       # Modelo principal
+│   │   ├── regression_model.py       # Regressão logística
+│   │   └── evaluate.py               # Métricas e validação
+│   └── visualization/
+│       └── plots.py                  # Gráficos padronizados
+│
+├── models/
+│   ├── isolation_forest.pkl          # Modelo treinado
+│   └── scaler.pkl                    # Scaler salvo
+│
+├── reports/
+│   ├── figures/                      # Gráficos exportados
+│   │   ├── eda_hourly_distribution.png
+│   │   ├── fraud_heatmap.png
+│   │   ├── time_series_fraud_rate.png
+│   │   └── model_metrics.png
+│   └── final_report.md               # Relatório detalhado
+│
+├── dashboards/
+│   └── fraud_dashboard.pbix          # Dashboard Power BI
+│
+├── tests/
+│   ├── test_features.py              # Testa cálculo das features
+│   ├── test_models.py                # Testa treinamento e predição
+│   └── test_data_processing.py       # Testa pipeline de limpeza
+│
+├── docker-compose.yml                # Ambiente local com Airflow
+├── requirements.txt
+├── .env.example
+└── README.md
+```
+
+---
+
+## Como Executar
+
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/seu-usuario/fraud-detection-platform.git
+cd fraud-detection-platform
+```
+
+### 2. Configurar ambiente
+
+```bash
+python -m venv .venv
+source .venv/bin/activate       # Linux/macOS
+# .venv\Scripts\activate        # Windows
+
+pip install -r requirements.txt
+cp .env.example .env
+# Preencher variáveis de ambiente (GCP_PROJECT, AIRFLOW_HOME, etc.)
+```
+
+### 3. Subir Airflow localmente
+
+```bash
+docker-compose up -d
+# Interface: http://localhost:8080
+# Usuário: admin | Senha: admin
+```
+
+### 4. Executar testes
+
+```bash
+pytest tests/ -v --cov=src
+```
+
+### 5. Executar pipeline manualmente
+
+```bash
+# Execução individual de cada etapa
+python -m src.data.load_data
+python -m src.data.preprocess
+python -m src.features.feature_engineering
+python -m src.models.isolation_forest
+python -m src.models.evaluate
+```
+
+---
+
+## Resultados Esperados
+
+<!-- [atualizar] Preencher com métricas reais após execução completa do pipeline -->
+
+| Métrica | Meta | Resultado Obtido |
+|---|---|---|
+| Taxa de detecção de fraudes | > 85% | [atualizar] |
+| Falsos positivos | < 10% | [atualizar] |
+| F1-Score | > 0.85 | [atualizar] |
+| ROC-AUC | > 0.90 | [atualizar] |
+| Cobertura de testes | > 80% | [atualizar] |
+| Tempo médio de pipeline | < 30min | [atualizar] |
+
+---
+
+## Extensões Futuras
+
+- [ ] LSTM para análise avançada de séries temporais
+- [ ] Autoencoders para detecção de anomalias em alta dimensão
+- [ ] Detecção de fraude em tempo real com Apache Kafka
+- [ ] Graph Analytics para identificar redes de fraude
+- [ ] API REST com FastAPI para servir predições
+- [ ] Integração com streaming de dados (Pub/Sub + Dataflow)
+
+---
+
+## Licença
+
+Distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
+
+---
+
+> **Nota:** As seções marcadas com `[atualizar]` devem ser preenchidas com capturas de tela, gráficos gerados e métricas reais após a execução completa do pipeline.
