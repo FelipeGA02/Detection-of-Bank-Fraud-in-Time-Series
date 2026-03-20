@@ -85,25 +85,25 @@ Fraudes financeiras geram bilhões em prejuízo anualmente. Sistemas baseados ap
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     ORQUESTRAÇÃO — APACHE AIRFLOW                       │
 │                                                                         │
-│   DAG: ingestão ──► DAG: transformação ──► DAG: ML ──► DAG: analytics  │
+│   DAG: ingestão ──► DAG: transformação ──► DAG: ML ──► DAG: analytics   │
 └──────────┬─────────────────────┬──────────────────────┬─────────────────┘
            │                     │                      │
            ▼                     ▼                      ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────┐
-│   BRONZE LAYER   │  │   SILVER LAYER   │  │       GOLD LAYER         │
-│   (BigQuery)     │  │   (BigQuery)     │  │      (BigQuery)           │
-│                  │  │                  │  │                           │
+┌──────────────────┐  ┌───────────────────┐  ┌──────────────────────────┐
+│   BRONZE LAYER   │  │   SILVER LAYER    │  │       GOLD LAYER         │
+│   (BigQuery)     │  │   (BigQuery)      │  │      (BigQuery)          │
+│                  │  │                   │  │                          │
 │ raw_transactions │  │ clean_transactions│  │ fraud_kpis_daily         │
 │ raw_customers    │  │ enriched_features │  │ anomaly_summary          │
 │ raw_events       │  │ statistical_flags │  │ customer_risk_score      │
-└──────────────────┘  └──────────────────┘  └──────────────┬───────────┘
+└──────────────────┘  └───────────────────┘  └──────────────┬───────────┘
                                                             │
                                ┌────────────────────────────┘
                                ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                      ML PIPELINE                                        │
 │                                                                         │
-│  Feature Engineering ──► Isolation Forest / LSTM ──► Fraud Predictions │
+│  Feature Engineering ──► Isolation Forest / LSTM ──► Fraud Predictions  │
 └─────────────────────────────────────────────────────────────────────────┘
                                │
                                ▼
