@@ -1,0 +1,107 @@
+# docker-compose.yml
+# ------------------
+# Ambiente local do Apache Airflow para o projeto fraud-detection.
+# Projeto GCP: bankfraud-491117
+#
+# Uso:
+#   docker-compose up -d          # sobe o ambiente
+#   docker-compose down           # derruba
+#   docker-compose logs -f        # acompanha logs
+#
+# Interface: http://localhost:8080
+# Usuario  : admin
+# Senha    : admin
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.8.1-python3.11
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Sao_Paulo
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+    AIRFLOW__WEBSERVER__SECRET_KEY: "fraud-detection-secret-key"
+    # Credenciais GCP — lidas do arquivo .env
+    GCP_PROJECT: ${GCP_PROJECT:-bankfraud-491117}
+    GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/credentials/gcp_sa_key.json
+    # Kaggle API
+    KAGGLE_USERNAME: ${KAGGLE_USERNAME}
+    KAGGLE_KEY: ${KAGGLE_KEY}
+    # Python path para importar modulos do projeto
+    PYTHONPATH: /opt/airflow/src
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./src:/opt/airflow/src
+    - ./data:/opt/airflow/data
+    - ./models:/opt/airflow/models
+    - ./reports:/opt/airflow/reports
+    - ./logs:/opt/airflow/logs
+    - ./credentials:/opt/airflow/credentials
+    - ./requirements.txt:/requirements.txt
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+
+  # ── Banco de dados do Airflow ──────────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Inicializacao do banco ─────────────────────────────────────────────────
+  airflow-init:
+    <<: *airflow-common
+    command: >
+      bash -c "
+        pip install --quiet -r /requirements.txt &&
+        airflow db upgrade &&
+        airflow users create
+          --username admin
+          --password admin
+          --firstname Admin
+          --lastname User
+          --role Admin
+          --email admin@fraud-detection.local
+      "
+    restart: on-failure
+
+  # ── Webserver (interface grafica) ──────────────────────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  # ── Scheduler (executa as DAGs) ────────────────────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
