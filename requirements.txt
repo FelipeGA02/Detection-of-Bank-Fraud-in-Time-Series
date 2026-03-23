@@ -1,0 +1,10 @@
+kaggle
+python-dotenv
+pandas
+numpy
+scikit-learn
+faker  
+scipy 
+matplotlib 
+seaborn 
+jupyter
