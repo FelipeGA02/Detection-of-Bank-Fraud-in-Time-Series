@@ -1,6 +1,4 @@
 """
-preprocess.py
--------------
 Pipeline Bronze -> Silver para os datasets reais de fraud detection do Kaggle.
 
 Suporta 3 datasets com schemas diferentes:
@@ -13,9 +11,6 @@ Uso:
     python preprocess.py --dataset ieee
     python preprocess.py --dataset sparkov
     python preprocess.py --dataset ulb --output data/processed/ulb_clean.csv
-
-Dependencias:
-    pip install pandas numpy
 """
 
 import argparse
@@ -49,10 +44,7 @@ DATASET_CONFIGS = {
     },
 }
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 #  LOADERS
-# ══════════════════════════════════════════════════════════════════════════════
 
 def load_ulb(cfg: dict) -> pd.DataFrame:
     """
@@ -127,25 +119,19 @@ def load_sparkov(cfg: dict) -> pd.DataFrame:
     _print_load_summary(df)
     return df
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 #  LIMPEZA GENERICA
-# ══════════════════════════════════════════════════════════════════════════════
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     """Remove duplicatas, valores invalidos e corrige tipos."""
     print("\nLimpando dados...")
     before = len(df)
 
-    # Duplicatas
     id_col = "transaction_id" if "transaction_id" in df.columns else None
     df = df.drop_duplicates(subset=[id_col]) if id_col else df.drop_duplicates()
 
-    # Valores invalidos
     df = df[df["amount"].notna() & (df["amount"] >= 0)]
     df = df[df["is_fraud"].notna()]
 
-    # Tipos
     df["amount"]   = df["amount"].astype(float)
     df["is_fraud"] = df["is_fraud"].astype(bool)
 
@@ -153,10 +139,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     print(f"  Registros removidos: {removed:,}" if removed else "  Nenhum registro invalido.")
     return df
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 #  FEATURE ENGINEERING — especifico por dataset
-# ══════════════════════════════════════════════════════════════════════════════
 
 def features_ulb(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -165,16 +148,13 @@ def features_ulb(df: pd.DataFrame) -> pd.DataFrame:
     """
     print("Gerando features ULB...")
 
-    # Hora aproximada (ciclo de 24h = 86400 segundos)
     df["hour"]          = (df["time_seconds"] % 86400 // 3600).astype(int)
     df["is_madrugada"]  = df["hour"].between(0, 5).astype(int)
 
-    # Transformacoes do valor
     df["log_amount"]    = np.log1p(df["amount"])
     mean_a, std_a       = df["amount"].mean(), df["amount"].std()
     df["amount_zscore"] = (df["amount"] - mean_a) / (std_a + 1e-6)
 
-    # Flag: valor acima do percentil 95
     df["is_high_value"] = (df["amount"] > df["amount"].quantile(0.95)).astype(int)
 
     print("  Features: hour, is_madrugada, log_amount, amount_zscore, is_high_value")
@@ -196,11 +176,9 @@ def features_ieee(df: pd.DataFrame) -> pd.DataFrame:
     mean_a, std_a       = df["amount"].mean(), df["amount"].std()
     df["amount_zscore"] = (df["amount"] - mean_a) / (std_a + 1e-6)
 
-    # Sinais de dado ausente (comum em fraudes IEEE)
     df["has_email"]  = df["purchaser_email_domain"].notna().astype(int)
     df["has_device"] = df["device_type"].notna().astype(int)
 
-    # Proporcao de campos V nulos por transacao
     v_cols = [c for c in df.columns if c.startswith("V")]
     if v_cols:
         df["v_null_ratio"] = df[v_cols].isnull().mean(axis=1)
@@ -224,18 +202,15 @@ def features_sparkov(df: pd.DataFrame) -> pd.DataFrame:
     df["is_madrugada"] = df["hour"].between(0, 5).astype(int)
     df["log_amount"]   = np.log1p(df["amount"])
 
-    # Valor relativo a media da categoria
     cat_avg = df.groupby("category")["amount"].transform("mean")
     df["amount_vs_category_avg"] = df["amount"] / (cat_avg + 1e-6)
 
-    # Distancia geografica cliente <-> estabelecimento
     if all(c in df.columns for c in ["lat", "long", "merchant_lat", "merchant_long"]):
         df["geo_distance"] = np.sqrt(
             (df["lat"]  - df["merchant_lat"])  ** 2 +
             (df["long"] - df["merchant_long"]) ** 2
         )
 
-    # Tempo desde ultima transacao do mesmo cartao (em segundos)
     df = df.sort_values(["card_number", "timestamp"])
     df["seconds_since_last"] = (
         df.groupby("card_number")["timestamp"]
@@ -248,10 +223,7 @@ def features_sparkov(df: pd.DataFrame) -> pd.DataFrame:
     print("            log_amount, amount_vs_category_avg, geo_distance, seconds_since_last")
     return df
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 #  RELATORIO E SALVAMENTO
-# ══════════════════════════════════════════════════════════════════════════════
 
 def quality_report(df: pd.DataFrame, dataset: str, stage: str) -> dict:
     nulls = {k: int(v) for k, v in df.isnull().sum().items() if v > 0}
@@ -295,10 +267,7 @@ def save_silver(df: pd.DataFrame, path: str) -> None:
     print(f"Silver salvo   : {path}  ({mb:.1f} MB)")
     print(f"Shape final    : {df.shape[0]:,} linhas x {df.shape[1]} colunas")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 #  HELPERS
-# ══════════════════════════════════════════════════════════════════════════════
 
 def _check_file(path: str, name: str) -> None:
     if not os.path.exists(path):
@@ -314,10 +283,7 @@ def _print_load_summary(df: pd.DataFrame) -> None:
     print(f"  Colunas  : {df.shape[1]}")
     print(f"  Fraudes  : {fraud_n:,} ({rate:.3f}%)")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 #  PIPELINE PRINCIPAL
-# ══════════════════════════════════════════════════════════════════════════════
 
 def run_pipeline(dataset: str) -> pd.DataFrame:
     cfg = DATASET_CONFIGS[dataset]
@@ -326,24 +292,19 @@ def run_pipeline(dataset: str) -> pd.DataFrame:
     print(f"  PIPELINE BRONZE -> SILVER  |  {cfg['name']}")
     print("=" * 55)
 
-    # 1. Carrega
     loaders = {"ulb": load_ulb, "ieee": load_ieee, "sparkov": load_sparkov}
     df = loaders[dataset](cfg)
     r_bronze = quality_report(df, dataset, "BRONZE (entrada)")
     print_report(r_bronze)
 
-    # 2. Limpa
     df = clean(df)
 
-    # 3. Features
     feature_fns = {"ulb": features_ulb, "ieee": features_ieee, "sparkov": features_sparkov}
     df = feature_fns[dataset](df)
 
-    # 4. Relatorio final
     r_silver = quality_report(df, dataset, "SILVER (saida)")
     print_report(r_silver)
 
-    # 5. Salva
     save_silver(df, cfg["output"])
     save_report([r_bronze, r_silver], cfg["report"])
 
@@ -355,27 +316,23 @@ def run_pipeline(dataset: str) -> pd.DataFrame:
     return df
 
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Pipeline Bronze -> Silver para datasets de fraud detection"
-    )
-    parser.add_argument(
-        "--dataset", type=str, choices=["ulb", "ieee", "sparkov"], default="ulb",
-        help="Dataset: ulb | ieee | sparkov  (padrao: ulb)"
-    )
-    parser.add_argument(
-        "--output", type=str, default=None,
-        help="Caminho de saida customizado para o CSV Silver"
-    )
-    args = parser.parse_args()
+parser = argparse.ArgumentParser(
+    description="Pipeline Bronze -> Silver para datasets de fraud detection"
+)
+parser.add_argument(
+    "--dataset", type=str, choices=["ulb", "ieee", "sparkov"], default="ulb",
+    help="Dataset: ulb | ieee | sparkov  (padrao: ulb)"
+)
+parser.add_argument(
+    "--output", type=str, default=None,
+    help="Caminho de saida customizado para o CSV Silver"
+)
+args = parser.parse_args()
 
-    if args.output:
-        DATASET_CONFIGS[args.dataset]["output"] = args.output
+if args.output:
+    DATASET_CONFIGS[args.dataset]["output"] = args.output
 
-    run_pipeline(args.dataset)
+run_pipeline(args.dataset)
 
-
-if __name__ == "__main__":
-    main()

@@ -121,7 +121,6 @@ def download_dataset(api, dataset_info: dict) -> bool:
 
     os.makedirs(output_dir, exist_ok=True)
 
-    # Pasta temporaria para o zip
     tmp_dir = os.path.join(output_dir, "_tmp")
     os.makedirs(tmp_dir, exist_ok=True)
 
@@ -143,16 +142,12 @@ def download_dataset(api, dataset_info: dict) -> bool:
                 path=tmp_dir,
                 quiet=False,
             )
-            # Extrai zips dentro do diretorio
             _extract_zips(tmp_dir)
 
-        # Move arquivos CSV para output_dir
         _move_csv_files(tmp_dir, output_dir)
 
-        # Remove pasta temporaria
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        # Lista arquivos baixados
         files = [f for f in os.listdir(output_dir) if f.endswith(".csv")]
         print(f"\n  Arquivos disponiveis em '{output_dir}':")
         for f in files:
@@ -205,64 +200,55 @@ def list_datasets() -> None:
     print("=" * 65)
 
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Download de datasets de fraud detection do Kaggle"
-    )
-    parser.add_argument(
-        "--dataset", type=int, choices=[1, 2, 3], default=1,
-        help="Dataset a baixar: 1=ULB, 2=IEEE-CIS, 3=Sparkov (padrao: 1)"
-    )
-    parser.add_argument(
-        "--all", action="store_true",
-        help="Baixa todos os datasets"
-    )
-    parser.add_argument(
-        "--list", action="store_true",
-        help="Lista os datasets disponiveis e sai"
-    )
-    args = parser.parse_args()
+parser = argparse.ArgumentParser(
+    description="Download de datasets de fraud detection do Kaggle"
+)
+parser.add_argument(
+    "--dataset", type=int, choices=[1, 2, 3], default=1,
+    help="Dataset a baixar: 1=ULB, 2=IEEE-CIS, 3=Sparkov (padrao: 1)"
+)
+parser.add_argument(
+    "--all", action="store_true",
+    help="Baixa todos os datasets"
+)
+parser.add_argument(
+    "--list", action="store_true",
+    help="Lista os datasets disponiveis e sai"
+)
+args = parser.parse_args()
 
-    if args.list:
-        list_datasets()
-        return
-
-    print("=" * 55)
-    print("  KAGGLE DATASET DOWNLOADER")
-    print("  Fraud Detection Platform")
-    print("=" * 55)
-
+if args.list:
     list_datasets()
 
-    # Verifica credenciais
-    if not check_kaggle_credentials():
-        sys.exit(1)
+print("=" * 55)
+print("  KAGGLE DATASET DOWNLOADER")
+print("  Fraud Detection Platform")
+print("=" * 55)
 
-    api = get_kaggle_api()
-    print("Autenticado com sucesso!\n")
+list_datasets()
 
-    # Seleciona datasets
-    targets = list(DATASETS.keys()) if args.all else [args.dataset]
+if not check_kaggle_credentials():
+    sys.exit(1)
 
-    results = {}
-    for key in targets:
-        results[key] = download_dataset(api, DATASETS[key])
+api = get_kaggle_api()
+print("Autenticado com sucesso!\n")
 
-    # Resumo final
-    print("\n" + "=" * 55)
-    print("RESUMO DO DOWNLOAD")
-    print("=" * 55)
-    for key, success in results.items():
-        status = "OK" if success else "FALHOU"
-        print(f"  [{status}] {DATASETS[key]['name']}")
+targets = list(DATASETS.keys()) if args.all else [args.dataset]
 
-    print("\nProximo passo:")
-    print("  python preprocess.py --dataset ulb")
-    print("  (ou: ieee | sparkov conforme o dataset baixado)")
-    print("=" * 55)
+results = {}
+for key in targets:
+    results[key] = download_dataset(api, DATASETS[key])
 
+print("\n" + "=" * 55)
+print("RESUMO DO DOWNLOAD")
+print("=" * 55)
+for key, success in results.items():
+    status = "OK" if success else "FALHOU"
+    print(f"  [{status}] {DATASETS[key]['name']}")
 
-if __name__ == "__main__":
-    main()
+print("\nProximo passo:")
+print("  python preprocess.py --dataset ulb")
+print("  (ou: ieee | sparkov conforme o dataset baixado)")
+print("=" * 55)
